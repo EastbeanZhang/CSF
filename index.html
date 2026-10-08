@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="Connected Self Forcing reconnects cross-chunk gradient paths for long-horizon autoregressive video generation with shortcut gradient replay.">
+  <meta property="og:title" content="Connected Self Forcing">
+  <meta property="og:description" content="Beyond Local Learning in Video Autoregression">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://eastbeanzhang.github.io/CSF/">
+  <meta property="og:image" content="https://eastbeanzhang.github.io/CSF/static/images/poster.jpg">
+  <title>Connected Self Forcing · Beyond Local Learning in Video Autoregression</title>
+  <link rel="icon" href="static/images/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="static/css/style.css?v=15">
+  <script src="static/js/main.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="paper-header wrap">
+    <h1><span>Connected</span> Self Forcing</h1>
+    <p class="paper-subtitle">Beyond Local Learning in Video Autoregression</p>
+    <svg class="title-connections" viewBox="0 0 160 28" aria-hidden="true" focusable="false">
+      <path class="connection-rail" d="M16 8H144"/>
+      <path class="connection-return" d="M144 8V21H16V8M80 21V8"/>
+      <g class="connection-node node-first"><circle class="connection-halo" cx="16" cy="8" r="7"/><circle class="connection-dot" cx="16" cy="8" r="3.5"/></g>
+      <g class="connection-node node-middle"><circle class="connection-halo" cx="80" cy="8" r="7"/><circle class="connection-dot" cx="80" cy="8" r="3.5"/></g>
+      <g class="connection-node node-last"><circle class="connection-halo" cx="144" cy="8" r="7"/><circle class="connection-dot" cx="144" cy="8" r="3.5"/></g>
+      <g class="connection-signal signal-forward"><circle class="signal-glow" r="5"/><circle class="signal-core" r="2.3"/></g>
+      <g class="connection-signal signal-to-first"><circle class="signal-glow" r="5"/><circle class="signal-core" r="2.3"/></g>
+      <g class="connection-signal signal-to-middle"><circle class="signal-glow" r="5"/><circle class="signal-core" r="2.3"/></g>
+    </svg>
+    <div class="paper-authors">
+      <div class="author-row"><span class="author-name"><a href="https://eastbeanzhang.github.io/" target="_blank" rel="noopener noreferrer">Dongbin Zhang</a><sup>1</sup></span><span class="author-name"><a href="https://ghostish.github.io/" target="_blank" rel="noopener noreferrer">Chaoda Zheng</a><sup>1,*</sup></span><span class="author-name"><a href="https://github.com/chenkangjie1123" target="_blank" rel="noopener noreferrer">Kangjie Chen</a><sup>1</sup></span><span class="author-name">Xiangyu Li<sup>1</sup></span><span class="author-name">Shijia Chen<sup>1</sup></span><span class="author-name"><a href="https://scholar.google.com/citations?user=4lD_AkgAAAAJ&amp;hl=en" target="_blank" rel="noopener noreferrer">Jinhao Deng</a><sup>1</sup></span><span class="author-name">Yuqi Zhang<sup>1</sup></span></div>
+      <div class="author-row"><span class="author-name"><a href="https://jiangxb98.github.io/" target="_blank" rel="noopener noreferrer">Guangfeng Jiang</a><sup>1</sup></span><span class="author-name"><a href="https://scholar.google.com/citations?user=LqX1k5QAAAAJ&amp;hl=en" target="_blank" rel="noopener noreferrer">Hongbin Lin</a><sup>2</sup></span><span class="author-name"><a href="https://scholar.google.com/citations?user=XM2n3scAAAAJ&amp;hl=en" target="_blank" rel="noopener noreferrer">Choo Sin Wai</a><sup>3</sup></span><span class="author-name">Minqi Wang<sup>2</sup></span><span class="author-name"><a href="https://wangpuyi.github.io/" target="_blank" rel="noopener noreferrer">Puyi Wang</a><sup>2</sup></span><span class="author-name">Jingye Zhang<sup>3</sup></span></div>
+      <div class="author-row"><span class="author-name">Yu Zhang<sup>1</sup></span><span class="author-name"><a href="https://scholar.google.com/citations?user=697UEEIAAAAJ&amp;hl=en" target="_blank" rel="noopener noreferrer">Xianming Liu</a><sup>1</sup></span><span class="author-name">Boyang Wang<sup>1,†</sup></span></div>
+    </div>
+    <div class="paper-affiliations"><span><sup>1</sup>Xpeng</span><span><sup>2</sup>The Chinese University of Hong Kong</span><span><sup>3</sup>Tsinghua University</span></div>
+    <p class="author-notes"><span><sup>*</sup>Project lead.</span><span><sup>†</sup>Corresponding author.</span></p>
+    <div class="paper-links">
+      <a class="paper-link" role="link" aria-disabled="true"><svg class="resource-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M3.8423 0a1.0037 1.0037 0 0 0-.922.6078c-.1536.3687-.0438.6275.2938 1.1113l6.9185 8.3597-1.0223 1.1058a1.0393 1.0393 0 0 0 .003 1.4229l1.2292 1.3135-5.4391 6.4444c-.2803.299-.4538.823-.2971 1.1986a1.0253 1.0253 0 0 0 .9585.635.9133.9133 0 0 0 .6891-.3405l5.783-6.126 7.4902 8.0051a.8527.8527 0 0 0 .6835.2597.9575.9575 0 0 0 .8777-.6138c.1577-.377-.017-.7502-.306-1.1407l-7.0518-8.3418 1.0632-1.13a.9626.9626 0 0 0 .0089-1.3165L4.6336.4639s-.3733-.4535-.768-.463zm0 .272h.0166c.2179.0052.4874.2715.5644.3639l.005.006.0052.0055 10.169 10.9905a.6915.6915 0 0 1-.0072.945l-1.0666 1.133-1.4982-1.7724-8.5994-10.39c-.3286-.472-.352-.6183-.2592-.841a.7307.7307 0 0 1 .6704-.4401Zm14.341 1.5701a.877.877 0 0 0-.6554.2418l-5.6962 6.1584 1.6944 1.8319 5.3089-6.5138c.3251-.4335.479-.6603.3247-1.0292a1.1205 1.1205 0 0 0-.9763-.689zm-7.6557 12.2823 1.3186 1.4135-5.7864 6.1295a.6494.6494 0 0 1-.4959.26.7516.7516 0 0 1-.706-.4669c-.1119-.2682.0359-.6864.2442-.9083l.0051-.0055.0047-.0055z"/></svg>arXiv</a>
+      <a class="paper-link" role="link" aria-disabled="true"><svg class="resource-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>Code <span class="coming-soon">Coming soon</span></a>
+      <a class="paper-link" role="link" aria-disabled="true"><svg class="resource-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>YouTube</a>
+    </div>
+  </header>
+  <main id="main" class="wrap">
+    <section class="main-film" aria-label="Main video">
+      <video id="main-video" controls playsinline preload="none" poster="static/images/poster.jpg" aria-label="Connected Self Forcing main video">
+        <source src="static/videos/main.mp4?v=3" type="video/mp4">
+        <a href="static/videos/main.mp4?v=3">Download the main video</a>
+      </video>
+      <p class="main-caption">Video overview <a href="static/videos/main.mp4?v=3" download>Download <span aria-hidden="true">↗</span></a></p>
+    </section>
+    <section class="overview section" id="overview" aria-labelledby="overview-title">
+      <h2 id="overview-title">Overview</h2>
+      <p>In autoregressive video generation, each chunk becomes context for what follows. Self Forcing trains on the model’s own generated history, but detaches historical KV caches. This prevents later predictions from guiding how earlier context is generated.</p>
+      <p><strong>Connected Self Forcing</strong> restores selected cross-chunk paths through <strong>Shortcut Gradient Replay</strong>, recovering feedback through historical KV states and the computations that produced them. It does so without retaining the full rollout graph or adding parameters. The autoregressive inference process stays the same.</p>
+      <div class="mechanism-comparison" aria-label="Training-time feedback in Self Forcing and Connected Self Forcing">
+        <figure class="mechanism-panel">
+          <figcaption>Self Forcing</figcaption>
+          <svg viewBox="0 0 460 180" role="img" aria-labelledby="sf-mechanism-title">
+            <title id="sf-mechanism-title">Chunks are generated sequentially, but cross-chunk feedback is blocked at the historical context.</title>
+            <defs><marker id="forward-sf" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 8 4 0 8Z" fill="#a8a4b0"/></marker></defs>
+            <g class="chunk-box"><rect x="20" y="25" width="110" height="50" rx="7"/><rect x="175" y="25" width="110" height="50" rx="7"/><rect x="330" y="25" width="110" height="50" rx="7"/></g>
+            <g class="chunk-label"><text x="75" y="55">Chunk 1</text><text x="230" y="55">Chunk 2</text><text x="385" y="55">Chunk 3</text></g>
+            <g fill="none" stroke="#a8a4b0" stroke-width="2" marker-end="url(#forward-sf)"><path d="M136 50H168"/><path d="M291 50H323"/></g>
+            <g class="blocked-path"><path d="M385 82V137H75V106M230 137V106"/></g>
+            <g class="blocked-mark"><path d="m68 89 14 14m0-14-14 14M223 89l14 14m0-14-14 14"/></g>
+            <text class="path-label" x="230" y="166">Cross-chunk feedback is blocked</text>
+          </svg>
+        </figure>
+        <figure class="mechanism-panel connected-panel">
+          <figcaption>Connected Self Forcing <span class="method-badge">Ours</span></figcaption>
+          <svg viewBox="0 0 460 180" role="img" aria-labelledby="csf-mechanism-title">
+            <title id="csf-mechanism-title">The same sequential generation, with selected gradient paths replayed from later chunks to earlier context during training.</title>
+            <defs><marker id="forward-csf" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 8 4 0 8Z" fill="#a8a4b0"/></marker><marker id="feedback-csf" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 8 4 0 8Z" fill="#ad91d7"/></marker></defs>
+            <g class="chunk-box"><rect x="20" y="25" width="110" height="50" rx="7"/><rect x="175" y="25" width="110" height="50" rx="7"/><rect x="330" y="25" width="110" height="50" rx="7"/></g>
+            <g class="chunk-label"><text x="75" y="55">Chunk 1</text><text x="230" y="55">Chunk 2</text><text x="385" y="55">Chunk 3</text></g>
+            <g fill="none" stroke="#a8a4b0" stroke-width="2" marker-end="url(#forward-csf)"><path d="M136 50H168"/><path d="M291 50H323"/></g>
+            <g class="connected-path"><path d="M385 82V137H75V84" marker-end="url(#feedback-csf)"/><path d="M230 137V84" marker-end="url(#feedback-csf)"/></g>
+            <text class="path-label" x="230" y="166">Later predictions guide earlier context</text>
+          </svg>
+        </figure>
+      </div>
+      <details class="method-details abstract-details" id="abstract">
+        <summary><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="method-summary"><span class="method-label">Abstract</span><span class="method-hint">Read the complete paper abstract</span></span></summary>
+        <div class="abstract-content">
+          <p>To stream long videos while maintaining visual quality and temporal consistency, Self Forcing mitigates exposure bias through self-rollout training on self-generated histories with key-value (KV) caching. To keep memory manageable, it detaches historical caches, preserving forward dependencies between chunks but severing the backward gradient paths.</p>
+          <p>We introduce Connected Self Forcing, a training framework that reconnects gradient paths across autoregressive chunks, allowing feedback from later predictions to guide how earlier context is generated. These connections go beyond historical KV-writing: gradients pass through generated latents into the computations that produced them, linking the generation of earlier context to its use in later predictions. To make this connected training memory-efficient, we develop shortcut gradient replay, which recovers cross-chunk gradients without retaining the full rollout computation graph.</p>
+          <p>Integrated with distribution matching distillation, Connected Self Forcing trains historical chunks according to both their direct supervision and their contribution to subsequent generation. Experiments on autoregressive video generation show improvements in long-horizon visual quality and temporal consistency, without changing the inference procedure.</p>
+        </div>
+      </details>
+      <details class="method method-details" id="method">
+        <summary><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="method-summary"><span class="method-label">Method details</span><span class="method-hint">Training pipeline and shortcut replay</span></span></summary>
+      <figure><a href="static/images/pipeline.webp" target="_blank" rel="noopener" aria-label="Open the full-resolution method pipeline"><img src="static/images/pipeline.webp" width="2200" height="903" loading="lazy" decoding="async" alt="Self Forcing detaches historical context; Connected Self Forcing restores selected gradient paths through shortcut replay, the historical KV writer, and the earlier generator."></a><figcaption>Shortcut Gradient Replay reconnects feedback from later predictions to earlier context generation. The replayed feedback is combined with direct DMD gradients to update the shared generator.</figcaption></figure>
+      </details>
+    </section>
+    <section class="section comparisons" id="comparisons" aria-labelledby="comparisons-title">
+      <h2 id="comparisons-title">Full-Length Video Comparisons</h2>
+      <p class="section-intro">Each prompt is shown with SF, SGF, and CSF at the original playback speed. Use the shared controls to play, pause, or seek all three videos together.</p>
+      <noscript><p class="section-intro">Use each video’s native controls to play the full comparisons.</p></noscript>
+      <h3 class="duration-heading">60-second generation</h3>
+<article class="comparison" id="prompt-01" data-duration="60">
+        <div class="case-heading"><h4>Tokyo street</h4><p>Chunk-wise · Causal CD initialization</p></div>
+        <p class="prompt"><span>Full prompt:</span> A stylish woman walks down a Tokyo street filled with warm glowing neon and animated city signage. She wears a black leather jacket, a long red dress, and black boots, and carries a black purse. She wears sunglasses and red lipstick. She walks confidently and casually. The street is damp and reflective, creating a mirror effect of the colorful lights. Many pedestrians walk about.</p>
+        <div class="video-grid"><figure class="comparison-video">
+          <figcaption class="">Self Forcing</figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-01-sf.jpg" aria-label="Tokyo street: Self Forcing">
+            <source src="static/videos/prompt-01/sf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-01/sf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure><figure class="comparison-video">
+          <figcaption class="">Self Gradient Forcing</figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-01-sgf.jpg" aria-label="Tokyo street: Self Gradient Forcing">
+            <source src="static/videos/prompt-01/sgf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-01/sgf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure><figure class="comparison-video">
+          <figcaption class="ours">Connected Self Forcing <span class="method-badge">Ours</span></figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-01-csf.jpg" aria-label="Tokyo street: Connected Self Forcing (Ours)">
+            <source src="static/videos/prompt-01/csf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-01/csf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure></div>
+        <div class="comparison-controls" hidden>
+          <div class="playback-buttons"><button type="button" data-action="play" aria-label="Play all three Tokyo street videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5 3 8 5-8 5Z" fill="currentColor"/></svg>Play</button><button type="button" data-action="pause" aria-label="Pause all three Tokyo street videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3v10M11 3v10" stroke="currentColor" stroke-width="2"/></svg>Pause</button><button type="button" data-action="restart" aria-label="Restart all three Tokyo street videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 7a5 5 0 1 1 1 4M3 3v4h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Restart</button></div>
+          <label class="timeline"><span class="visually-hidden">Synchronized playback position for Tokyo street</span><input type="range" min="0" max="60" step="0.05" value="0" aria-label="Synchronized playback position for Tokyo street"></label>
+          <output class="time">0:00 / 1:00</output>
+        </div>
+        <p class="comparison-status" role="status" hidden></p>
+      </article>
+<article class="comparison" id="prompt-02" data-duration="60">
+        <div class="case-heading"><h4>Neon-city dogs</h4><p>Chunk-wise · Causal CD initialization</p></div>
+        <p class="prompt"><span>Full prompt:</span> A Samoyed and a Golden Retriever dog are playfully romping through a futuristic neon city at night. The neon lights emitted from the nearby buildings glistens off of their fur.</p>
+        <div class="video-grid"><figure class="comparison-video">
+          <figcaption class="">Self Forcing</figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-02-sf.jpg" aria-label="Neon-city dogs: Self Forcing">
+            <source src="static/videos/prompt-02/sf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-02/sf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure><figure class="comparison-video">
+          <figcaption class="">Self Gradient Forcing</figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-02-sgf.jpg" aria-label="Neon-city dogs: Self Gradient Forcing">
+            <source src="static/videos/prompt-02/sgf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-02/sgf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure><figure class="comparison-video">
+          <figcaption class="ours">Connected Self Forcing <span class="method-badge">Ours</span></figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-02-csf.jpg" aria-label="Neon-city dogs: Connected Self Forcing (Ours)">
+            <source src="static/videos/prompt-02/csf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-02/csf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure></div>
+        <div class="comparison-controls" hidden>
+          <div class="playback-buttons"><button type="button" data-action="play" aria-label="Play all three Neon-city dogs videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5 3 8 5-8 5Z" fill="currentColor"/></svg>Play</button><button type="button" data-action="pause" aria-label="Pause all three Neon-city dogs videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3v10M11 3v10" stroke="currentColor" stroke-width="2"/></svg>Pause</button><button type="button" data-action="restart" aria-label="Restart all three Neon-city dogs videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 7a5 5 0 1 1 1 4M3 3v4h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Restart</button></div>
+          <label class="timeline"><span class="visually-hidden">Synchronized playback position for Neon-city dogs</span><input type="range" min="0" max="60" step="0.05" value="0" aria-label="Synchronized playback position for Neon-city dogs"></label>
+          <output class="time">0:00 / 1:00</output>
+        </div>
+        <p class="comparison-status" role="status" hidden></p>
+      </article>
+<article class="comparison" id="prompt-03" data-duration="60">
+        <div class="case-heading"><h4>Reading on a cloud</h4><p>Chunk-wise · Teacher Forcing initialization</p></div>
+        <p class="prompt"><span>Full prompt:</span> A young man at his 20s is sitting on a piece of cloud in the sky, reading a book.</p>
+        <div class="video-grid"><figure class="comparison-video">
+          <figcaption class="">Self Forcing</figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-03-sf.jpg" aria-label="Reading on a cloud: Self Forcing">
+            <source src="static/videos/prompt-03/sf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-03/sf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure><figure class="comparison-video">
+          <figcaption class="">Self Gradient Forcing</figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-03-sgf.jpg" aria-label="Reading on a cloud: Self Gradient Forcing">
+            <source src="static/videos/prompt-03/sgf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-03/sgf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure><figure class="comparison-video">
+          <figcaption class="ours">Connected Self Forcing <span class="method-badge">Ours</span></figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-03-csf.jpg" aria-label="Reading on a cloud: Connected Self Forcing (Ours)">
+            <source src="static/videos/prompt-03/csf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-03/csf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure></div>
+        <div class="comparison-controls" hidden>
+          <div class="playback-buttons"><button type="button" data-action="play" aria-label="Play all three Reading on a cloud videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5 3 8 5-8 5Z" fill="currentColor"/></svg>Play</button><button type="button" data-action="pause" aria-label="Pause all three Reading on a cloud videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3v10M11 3v10" stroke="currentColor" stroke-width="2"/></svg>Pause</button><button type="button" data-action="restart" aria-label="Restart all three Reading on a cloud videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 7a5 5 0 1 1 1 4M3 3v4h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Restart</button></div>
+          <label class="timeline"><span class="visually-hidden">Synchronized playback position for Reading on a cloud</span><input type="range" min="0" max="60" step="0.05" value="0" aria-label="Synchronized playback position for Reading on a cloud"></label>
+          <output class="time">0:00 / 1:00</output>
+        </div>
+        <p class="comparison-status" role="status" hidden></p>
+      </article>
+<article class="comparison" id="prompt-04" data-duration="60">
+        <div class="case-heading"><h4>Lagos street gathering</h4><p>Frame-wise · Causal CD initialization</p></div>
+        <p class="prompt"><span>Full prompt:</span> A beautiful homemade video showing the people of Lagos, Nigeria in the year 2056. Shot with a mobile phone camera.</p>
+        <div class="video-grid"><figure class="comparison-video">
+          <figcaption class="">Self Forcing</figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-04-sf.jpg" aria-label="Lagos street gathering: Self Forcing">
+            <source src="static/videos/prompt-04/sf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-04/sf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure><figure class="comparison-video">
+          <figcaption class="">Self Gradient Forcing</figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-04-sgf.jpg" aria-label="Lagos street gathering: Self Gradient Forcing">
+            <source src="static/videos/prompt-04/sgf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-04/sgf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure><figure class="comparison-video">
+          <figcaption class="ours">Connected Self Forcing <span class="method-badge">Ours</span></figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-04-csf.jpg" aria-label="Lagos street gathering: Connected Self Forcing (Ours)">
+            <source src="static/videos/prompt-04/csf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-04/csf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure></div>
+        <div class="comparison-controls" hidden>
+          <div class="playback-buttons"><button type="button" data-action="play" aria-label="Play all three Lagos street gathering videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5 3 8 5-8 5Z" fill="currentColor"/></svg>Play</button><button type="button" data-action="pause" aria-label="Pause all three Lagos street gathering videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3v10M11 3v10" stroke="currentColor" stroke-width="2"/></svg>Pause</button><button type="button" data-action="restart" aria-label="Restart all three Lagos street gathering videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 7a5 5 0 1 1 1 4M3 3v4h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Restart</button></div>
+          <label class="timeline"><span class="visually-hidden">Synchronized playback position for Lagos street gathering</span><input type="range" min="0" max="60" step="0.05" value="0" aria-label="Synchronized playback position for Lagos street gathering"></label>
+          <output class="time">0:00 / 1:00</output>
+        </div>
+        <p class="comparison-status" role="status" hidden></p>
+      </article>
+<h3 class="duration-heading">240-second generation</h3>
+<article class="comparison" id="prompt-05" data-duration="240">
+        <div class="case-heading"><h4>Robot walking</h4><p>Chunk-wise · Causal CD initialization</p></div>
+        <p class="prompt"><span>Full prompt:</span> a toy robot wearing purple overalls and cowboy boots taking a pleasant stroll in Mumbai India during a winter storm</p>
+        <div class="video-grid"><figure class="comparison-video">
+          <figcaption class="">Self Forcing</figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-05-sf.jpg" aria-label="Robot walking: Self Forcing">
+            <source src="static/videos/prompt-05/sf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-05/sf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure><figure class="comparison-video">
+          <figcaption class="">Self Gradient Forcing</figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-05-sgf.jpg" aria-label="Robot walking: Self Gradient Forcing">
+            <source src="static/videos/prompt-05/sgf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-05/sgf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure><figure class="comparison-video">
+          <figcaption class="ours">Connected Self Forcing <span class="method-badge">Ours</span></figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-05-csf.jpg" aria-label="Robot walking: Connected Self Forcing (Ours)">
+            <source src="static/videos/prompt-05/csf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-05/csf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure></div>
+        <div class="comparison-controls" hidden>
+          <div class="playback-buttons"><button type="button" data-action="play" aria-label="Play all three Robot walking videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5 3 8 5-8 5Z" fill="currentColor"/></svg>Play</button><button type="button" data-action="pause" aria-label="Pause all three Robot walking videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3v10M11 3v10" stroke="currentColor" stroke-width="2"/></svg>Pause</button><button type="button" data-action="restart" aria-label="Restart all three Robot walking videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 7a5 5 0 1 1 1 4M3 3v4h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Restart</button></div>
+          <label class="timeline"><span class="visually-hidden">Synchronized playback position for Robot walking</span><input type="range" min="0" max="240" step="0.05" value="0" aria-label="Synchronized playback position for Robot walking"></label>
+          <output class="time">0:00 / 4:00</output>
+        </div>
+        <p class="comparison-status" role="status" hidden></p>
+      </article>
+<article class="comparison" id="prompt-06" data-duration="240">
+        <div class="case-heading"><h4>Steaming teacup</h4><p>Chunk-wise · Causal CD initialization</p></div>
+        <p class="prompt"><span>Full prompt:</span> A steaming cup of tea in a cold room, with tendrils of steam rising and dissipating in the air above it.</p>
+        <div class="video-grid"><figure class="comparison-video">
+          <figcaption class="">Self Forcing</figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-06-sf.jpg" aria-label="Steaming teacup: Self Forcing">
+            <source src="static/videos/prompt-06/sf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-06/sf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure><figure class="comparison-video">
+          <figcaption class="">Self Gradient Forcing</figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-06-sgf.jpg" aria-label="Steaming teacup: Self Gradient Forcing">
+            <source src="static/videos/prompt-06/sgf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-06/sgf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure><figure class="comparison-video">
+          <figcaption class="ours">Connected Self Forcing <span class="method-badge">Ours</span></figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-06-csf.jpg" aria-label="Steaming teacup: Connected Self Forcing (Ours)">
+            <source src="static/videos/prompt-06/csf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-06/csf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure></div>
+        <div class="comparison-controls" hidden>
+          <div class="playback-buttons"><button type="button" data-action="play" aria-label="Play all three Steaming teacup videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5 3 8 5-8 5Z" fill="currentColor"/></svg>Play</button><button type="button" data-action="pause" aria-label="Pause all three Steaming teacup videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3v10M11 3v10" stroke="currentColor" stroke-width="2"/></svg>Pause</button><button type="button" data-action="restart" aria-label="Restart all three Steaming teacup videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 7a5 5 0 1 1 1 4M3 3v4h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Restart</button></div>
+          <label class="timeline"><span class="visually-hidden">Synchronized playback position for Steaming teacup</span><input type="range" min="0" max="240" step="0.05" value="0" aria-label="Synchronized playback position for Steaming teacup"></label>
+          <output class="time">0:00 / 4:00</output>
+        </div>
+        <p class="comparison-status" role="status" hidden></p>
+      </article>
+<article class="comparison" id="prompt-07" data-duration="240">
+        <div class="case-heading"><h4>Catching snowflakes</h4><p>Chunk-wise · Teacher Forcing initialization</p></div>
+        <p class="prompt"><span>Full prompt:</span> A low-angle shot of a child reaching out to catch falling snowflakes, with a backdrop of tall evergreen trees.</p>
+        <div class="video-grid"><figure class="comparison-video">
+          <figcaption class="">Self Forcing</figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-07-sf.jpg" aria-label="Catching snowflakes: Self Forcing">
+            <source src="static/videos/prompt-07/sf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-07/sf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure><figure class="comparison-video">
+          <figcaption class="">Self Gradient Forcing</figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-07-sgf.jpg" aria-label="Catching snowflakes: Self Gradient Forcing">
+            <source src="static/videos/prompt-07/sgf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-07/sgf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure><figure class="comparison-video">
+          <figcaption class="ours">Connected Self Forcing <span class="method-badge">Ours</span></figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-07-csf.jpg" aria-label="Catching snowflakes: Connected Self Forcing (Ours)">
+            <source src="static/videos/prompt-07/csf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-07/csf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure></div>
+        <div class="comparison-controls" hidden>
+          <div class="playback-buttons"><button type="button" data-action="play" aria-label="Play all three Catching snowflakes videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5 3 8 5-8 5Z" fill="currentColor"/></svg>Play</button><button type="button" data-action="pause" aria-label="Pause all three Catching snowflakes videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3v10M11 3v10" stroke="currentColor" stroke-width="2"/></svg>Pause</button><button type="button" data-action="restart" aria-label="Restart all three Catching snowflakes videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 7a5 5 0 1 1 1 4M3 3v4h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Restart</button></div>
+          <label class="timeline"><span class="visually-hidden">Synchronized playback position for Catching snowflakes</span><input type="range" min="0" max="240" step="0.05" value="0" aria-label="Synchronized playback position for Catching snowflakes"></label>
+          <output class="time">0:00 / 4:00</output>
+        </div>
+        <p class="comparison-status" role="status" hidden></p>
+      </article>
+<article class="comparison" id="prompt-08" data-duration="240">
+        <div class="case-heading"><h4>Piano performance</h4><p>Chunk-wise · Teacher Forcing initialization</p></div>
+        <p class="prompt"><span>Full prompt:</span> An older man playing piano, lit from the side.</p>
+        <div class="video-grid"><figure class="comparison-video">
+          <figcaption class="">Self Forcing</figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-08-sf.jpg" aria-label="Piano performance: Self Forcing">
+            <source src="static/videos/prompt-08/sf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-08/sf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure><figure class="comparison-video">
+          <figcaption class="">Self Gradient Forcing</figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-08-sgf.jpg" aria-label="Piano performance: Self Gradient Forcing">
+            <source src="static/videos/prompt-08/sgf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-08/sgf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure><figure class="comparison-video">
+          <figcaption class="ours">Connected Self Forcing <span class="method-badge">Ours</span></figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-08-csf.jpg" aria-label="Piano performance: Connected Self Forcing (Ours)">
+            <source src="static/videos/prompt-08/csf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-08/csf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure></div>
+        <div class="comparison-controls" hidden>
+          <div class="playback-buttons"><button type="button" data-action="play" aria-label="Play all three Piano performance videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5 3 8 5-8 5Z" fill="currentColor"/></svg>Play</button><button type="button" data-action="pause" aria-label="Pause all three Piano performance videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3v10M11 3v10" stroke="currentColor" stroke-width="2"/></svg>Pause</button><button type="button" data-action="restart" aria-label="Restart all three Piano performance videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 7a5 5 0 1 1 1 4M3 3v4h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Restart</button></div>
+          <label class="timeline"><span class="visually-hidden">Synchronized playback position for Piano performance</span><input type="range" min="0" max="240" step="0.05" value="0" aria-label="Synchronized playback position for Piano performance"></label>
+          <output class="time">0:00 / 4:00</output>
+        </div>
+        <p class="comparison-status" role="status" hidden></p>
+      </article>
+<article class="comparison" id="prompt-09" data-duration="240">
+        <div class="case-heading"><h4>Lakeside picnic</h4><p>Frame-wise · Teacher Forcing initialization</p></div>
+        <p class="prompt"><span>Full prompt:</span> A couple sits at a peaceful lakeside picnic, occasionally reaching into a basket for food, while the gentle ripples on the lake reflect the shifting colors of the sky.</p>
+        <div class="video-grid"><figure class="comparison-video">
+          <figcaption class="">Self Forcing</figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-09-sf.jpg" aria-label="Lakeside picnic: Self Forcing">
+            <source src="static/videos/prompt-09/sf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-09/sf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure><figure class="comparison-video">
+          <figcaption class="">Self Gradient Forcing</figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-09-sgf.jpg" aria-label="Lakeside picnic: Self Gradient Forcing">
+            <source src="static/videos/prompt-09/sgf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-09/sgf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure><figure class="comparison-video">
+          <figcaption class="ours">Connected Self Forcing <span class="method-badge">Ours</span></figcaption>
+          <video controls muted playsinline preload="none" poster="static/images/prompt-09-csf.jpg" aria-label="Lakeside picnic: Connected Self Forcing (Ours)">
+            <source src="static/videos/prompt-09/csf.mp4?v=3" type="video/mp4">
+            <a href="static/videos/prompt-09/csf.mp4?v=3">Open the full video</a>
+          </video>
+        </figure></div>
+        <div class="comparison-controls" hidden>
+          <div class="playback-buttons"><button type="button" data-action="play" aria-label="Play all three Lakeside picnic videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5 3 8 5-8 5Z" fill="currentColor"/></svg>Play</button><button type="button" data-action="pause" aria-label="Pause all three Lakeside picnic videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3v10M11 3v10" stroke="currentColor" stroke-width="2"/></svg>Pause</button><button type="button" data-action="restart" aria-label="Restart all three Lakeside picnic videos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 7a5 5 0 1 1 1 4M3 3v4h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Restart</button></div>
+          <label class="timeline"><span class="visually-hidden">Synchronized playback position for Lakeside picnic</span><input type="range" min="0" max="240" step="0.05" value="0" aria-label="Synchronized playback position for Lakeside picnic"></label>
+          <output class="time">0:00 / 4:00</output>
+        </div>
+        <p class="comparison-status" role="status" hidden></p>
+      </article>
+    </section>
+  </main>
+  <footer class="wrap"><span>Connected Self Forcing</span><a href="#">Back to top ↑</a><p class="compression-note">Videos have been compressed to reduce file sizes.</p></footer>
+</body>
+</html>
