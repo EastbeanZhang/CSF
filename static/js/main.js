@@ -17,14 +17,30 @@ class ComparisonPlayer {
     this.playing = false;
     this.loading = false;
     this.buffering = false;
+    this.scrubbing = false;
+    this.resumeAfterSeek = false;
     this.version = 0;
     this.frame = null;
     element.querySelector(".comparison-controls").hidden = false;
     element.querySelector('[data-action="play"]').addEventListener("click", () => this.play());
     element.querySelector('[data-action="pause"]').addEventListener("click", () => this.pause());
     element.querySelector('[data-action="restart"]').addEventListener("click", () => this.seek(0, true));
-    this.range.addEventListener("input", () => this.updateClock(Number(this.range.value)));
-    this.range.addEventListener("change", () => this.seek(Number(this.range.value), this.playing));
+    this.range.addEventListener("input", () => {
+      const position = Number(this.range.value);
+      if (!this.scrubbing) {
+        const resume = this.playing;
+        this.pause();
+        this.scrubbing = true;
+        this.resumeAfterSeek = resume;
+      }
+      // Keep playback updates from moving the thumb while the user is dragging it.
+      this.range.value = String(position);
+      this.updateClock(position);
+    });
+    this.range.addEventListener("change", () => {
+      const resume = this.scrubbing ? this.resumeAfterSeek : this.playing;
+      this.seek(Number(this.range.value), resume);
+    });
     this.videos.forEach(video => {
       video.addEventListener("loadedmetadata", () => this.updateDuration());
       video.addEventListener("play", () => {
@@ -97,6 +113,8 @@ class ComparisonPlayer {
     ++this.version;
     this.playing = false;
     this.buffering = false;
+    this.scrubbing = false;
+    this.resumeAfterSeek = false;
     cancelAnimationFrame(this.frame);
     this.position = this.videos[0].readyState ? this.videos[0].currentTime : this.position;
     this.videos.forEach(video => video.pause());
