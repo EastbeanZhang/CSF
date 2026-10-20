@@ -97,7 +97,8 @@ h1 > span { color: #9b7bc2; }
 .paper-link .resource-icon { width: 20px; height: 20px; flex-shrink: 0; display: block; }
 .main-film { width: min(980px, 100%); margin: 0 auto; }
 video { display: block; width: 100%; aspect-ratio: 16 / 9; background: #080b10; object-fit: contain; border-radius: 8px; }
-.main-film > video { border-radius: 12px; box-shadow: 0 8px 30px #192b4010; }
+.main-player { aspect-ratio: 16 / 9; overflow: hidden; border-radius: 12px; background: #080b10; box-shadow: 0 8px 30px #192b4010; }
+.main-player > iframe { display: block; width: 100%; height: 100%; border: 0; }
 .main-caption { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; margin: 14px 2px 0; }
 .main-caption span { margin-left: 4px; }
 .section { margin-top: 76px; }
@@ -207,7 +208,7 @@ footer { display: flex; justify-content: space-between; border-top: 1px solid va
   h1 > span { display: block; }
   .paper-subtitle { max-width: 310px; margin-inline: auto; font-size: 19px; }
   .paper-header { padding-top: 40px; }
-  .main-film > video { border-radius: 8px; }
+  .main-player { border-radius: 8px; }
   .comparison { padding: 16px; }
   .video-grid { grid-template-columns: 1fr; gap: 23px; }
   .comparison-video figcaption { font-size: 13px; height: auto; min-height: 22px; margin-bottom: 8px; }

@@ -12,8 +12,8 @@
   <meta property="og:image" content="https://eastbeanzhang.github.io/CSF/static/images/poster.jpg">
   <title>Connected Self Forcing · Beyond Local Learning in Video Autoregression</title>
   <link rel="icon" href="static/images/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="static/css/style.css?v=16">
-  <script src="static/js/main.js?v=2" defer></script>
+  <link rel="stylesheet" href="static/css/style.css?v=17">
+  <script src="static/js/main.js?v=3" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -45,10 +45,13 @@
   </header>
   <main id="main" class="wrap">
     <section class="main-film" aria-label="Main video">
-      <video id="main-video" controls playsinline preload="none" poster="static/images/poster.jpg" aria-label="Connected Self Forcing main video">
-        <source src="static/videos/main.mp4?v=3" type="video/mp4">
-        <a href="static/videos/main.mp4?v=3">Download the main video</a>
-      </video>
+      <div class="main-player">
+        <iframe id="main-video"
+          src="https://www.youtube.com/embed/rEnlDlRXLVQ?enablejsapi=1&amp;playsinline=1&amp;rel=0&amp;origin=https%3A%2F%2Feastbeanzhang.github.io"
+          title="Connected Self Forcing video demo" width="980" height="551"
+          allow="autoplay; encrypted-media; picture-in-picture; web-share"
+          referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+      </div>
       <p class="main-caption">Video overview <a href="static/videos/main.mp4?v=3" download>Download <span aria-hidden="true">↗</span></a></p>
     </section>
     <section class="overview section" id="overview" aria-labelledby="overview-title">

@@ -1,6 +1,6 @@
 "use strict";
 
-const mainVideo = document.getElementById("main-video");
+let mainPlayer = null;
 const controllers = [];
 const formatTime = seconds => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
 
@@ -132,7 +132,7 @@ class ComparisonPlayer {
   async play() {
     if (this.loading || this.playing) return;
     controllers.forEach(controller => { if (controller !== this) controller.pause(); });
-    mainVideo.pause();
+    mainPlayer?.pauseVideo?.();
     const version = ++this.version;
     this.setLoading(true);
     this.videos.forEach(video => video.pause());
@@ -201,4 +201,19 @@ class ComparisonPlayer {
 }
 
 document.querySelectorAll(".comparison").forEach(element => controllers.push(new ComparisonPlayer(element)));
-mainVideo.addEventListener("play", () => controllers.forEach(controller => controller.pause()));
+window.onYouTubeIframeAPIReady = () => {
+  mainPlayer = new window.YT.Player("main-video", {
+    events: {
+      onStateChange(event) {
+        if (event.data === window.YT.PlayerState.PLAYING) {
+          controllers.forEach(controller => controller.pause());
+        }
+      }
+    }
+  });
+};
+
+const playerApi = document.createElement("script");
+playerApi.src = "https://www.youtube.com/iframe_api";
+playerApi.async = true;
+document.head.appendChild(playerApi);
